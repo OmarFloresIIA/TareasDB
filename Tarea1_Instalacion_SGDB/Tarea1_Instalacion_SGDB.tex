@@ -1,0 +1,110 @@
+\documentclass[11pt, a4paper]{article}
+
+%?============= Configuración Documento ===================
+\usepackage[spanish]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.1em}
+
+%?============= Encabezados ===================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Tarea 1}              % Izquierda
+\chead{\today}               % Centro
+\rhead{Flroes Olivares Omar} % Derecha
+\cfoot{\thepage}             %pie de página
+
+% Línea divisora bajo el encabezado
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+%?=========== Configuración bloques de código / terminal ===========
+\lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    showstringspaces=false
+}
+
+%?============= Inicio del Documento ===================
+\begin{document}
+\thispagestyle{fancy}
+
+\section{Introducción}
+En este pequeño manual aprenderás a instalar y configurar PostgreSQL en tu computadora utilizando dos métodos distintos. Uno de los métodos consiste en usar Docker, una herramienta que permite desplegar PostgreSQL en contenedores. A diferencia de una máquina virtual, Docker no emula un sistema operativo completo como las máquinas virtuales; usa el SO por defecto sin crear otro adicional, por lo que es más ligero y rápido. Esto te permite descargar la versión de PostgreSQL que necesites sin instalar muchas dependencias adicionales.
+El otro método es el tradicional: descargar PostgreSQL desde su sitio oficial e instalarlo de forma nativa en tu equipo. Para manejarlo de manera más cómoda, también utilizaremos pgAdmin, una herramienta gráfica con una interfaz visual intuitiva para administrar la base de datos. En ambos casos se mostrará cómo crear y levantar una base de datos inicial para que puedas comparar los métodos y elegir el que mejor se adapte a tu flujo de trabajo.
+
+% ==========================================
+\section{Método 1: Docker}
+% ==========================================
+
+\subsection{Paso 1: Descargar Docker Desktop}
+Explicación de la descarga del instalador desde el sitio oficial de PostgreSQL e instalación de pgAdmin.
+
+\subsection{Paso 2: Creación de Base de Datos}
+Comandos ejecutados en pgAdmin o psql para crear la primera base de datos:
+
+\begin{lstlisting}[language=SQL]
+CREATE DATABASE db_tradicional;
+
+CREATE TABLE prueba (
+    id SERIAL PRIMARY KEY,
+    nombre VARCHAR(50)
+);
+
+INSERT INTO prueba (nombre) VALUES ('Hola PostgreSQL');
+\end{lstlisting}
+
+% ==========================================
+\section{Método 2: Instalación con Docker}
+% ==========================================
+
+\subsection{Paso 1: Instalación de Docker}
+Verificación de la instalación de Docker Engine / Docker Desktop mediante la terminal:
+
+\begin{lstlisting}
+docker --version
+docker compose version
+\end{lstlisting}
+
+\subsection{Paso 2: Despliegue con Docker Compose}
+Creación del archivo \texttt{docker-compose.yml}:
+
+\begin{lstlisting}
+version: '3.8'
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secretpassword
+      POSTGRES_DB: db_docker
+    ports:
+      - "5432:5432"
+\end{lstlisting}
+
+Comando para levantar el contenedor:
+\begin{lstlisting}
+docker compose up -d
+\end{lstlisting}
+
+\subsection{Paso 3: Verificación de la Base de Datos}
+Acceso al contenedor e inserción de datos de prueba:
+
+\begin{lstlisting}
+docker exec -it postgres_db psql -U admin -d db_docker
+\end{lstlisting}
+
+% ==========================================
+\section{Conclusión}
+% ==========================================
+Un párrafo breve sobre cuál método te pareció más práctico y por qué.
+
+\end{document}
