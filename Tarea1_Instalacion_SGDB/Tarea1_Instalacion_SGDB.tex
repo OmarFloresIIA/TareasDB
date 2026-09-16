@@ -7,6 +7,7 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{tcolorbox}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.1em}
 
@@ -38,73 +39,319 @@
 
 \section{Introducción}
 En este pequeño manual aprenderás a instalar y configurar PostgreSQL en tu computadora utilizando dos métodos distintos. Uno de los métodos consiste en usar Docker, una herramienta que permite desplegar PostgreSQL en contenedores. A diferencia de una máquina virtual, Docker no emula un sistema operativo completo como las máquinas virtuales; usa el SO por defecto sin crear otro adicional, por lo que es más ligero y rápido. Esto te permite descargar la versión de PostgreSQL que necesites sin instalar muchas dependencias adicionales.
-El otro método es el tradicional: descargar PostgreSQL desde su sitio oficial e instalarlo de forma nativa en tu equipo. Para manejarlo de manera más cómoda, también utilizaremos pgAdmin, una herramienta gráfica con una interfaz visual intuitiva para administrar la base de datos. En ambos casos se mostrará cómo crear y levantar una base de datos inicial para que puedas comparar los métodos y elegir el que mejor se adapte a tu flujo de trabajo.
+El otro método es el tradicional: descargar PostgreSQL desde su sitio oficial e instalarlo de forma nativa en tu equipo. Para manejarlo de manera más cómoda, también utilizaremos pgAdmin, una herramienta gráfica con una interfaz visual intuitiva para administrar la base de datos.
 
 % ==========================================
 \section{Método 1: Docker}
 % ==========================================
 
-\subsection{Paso 1: Descargar Docker Desktop}
-Explicación de la descarga del instalador desde el sitio oficial de PostgreSQL e instalación de pgAdmin.
+\subsection{Paso 1: Instalación de Docker Desktop}
 
-\subsection{Paso 2: Creación de Base de Datos}
-Comandos ejecutados en pgAdmin o psql para crear la primera base de datos:
+El primer paso para trabajar con contenedores es instalar \textbf{Docker Desktop}. Aunque existen muchos lugares en internet para obtener el instalador, la opción más rápida y segura dentro Windows es a través de \textbf{Microsoft Store}.
 
-\begin{lstlisting}[language=SQL]
-CREATE DATABASE db_tradicional;
+\begin{enumerate}
+    \item Abre la \textbf{Microsoft Store} desde el menú de inicio.
+    \item En la barra de búsqueda superior, escribe \texttt{Docker Desktop}.
+    \item Selecciona la primera opción y haz clic en el botón de instalar.
+\end{enumerate}
 
-CREATE TABLE prueba (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(50)
-);
 
-INSERT INTO prueba (nombre) VALUES ('Hola PostgreSQL');
-\end{lstlisting}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{cap1.png}
+    \caption{Búsqueda de Docker Desktop en Microsoft Store.}
+\end{figure}
 
-% ==========================================
-\section{Método 2: Instalación con Docker}
-% ==========================================
 
-\subsection{Paso 1: Instalación de Docker}
-Verificación de la instalación de Docker Engine / Docker Desktop mediante la terminal:
+\subsection{Paso 2: Activar la virtualización}
+
+Una vez iniciada la aplicación de \textbf{Docker Desktop}, la interfaz mostrará una pantalla de bienvenida donde se solicita iniciar sesión o crear una cuenta de usuario.
+
+Puedes omitir este paso haciendo clic en la opción \texttt{Skip} ubicada en la esquina superior derecha o crear una cuenta para tener vinculado todo, de todos modos la versión gratuita permite descargar imágenes de PostgreSQL y gestionar contenedores sin ninguna restricción.
+
+Al pasar autenticación, la aplicación mostrará este mensaje:
+\newpage
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{virtualizacion.png}
+    \caption{Mensaje de virtualización no detectada en \textbf{Docker Desktop}}
+\end{figure}
+
+Por lo que es necesario activar la virtualización siguiendo los siguientes pasos al pie de la letra:
+
+\begin{enumerate}
+    \item \textbf{Verificar la virtualización en el Administrador de Tareas:}
+    Presiona \texttt{Ctrl + Shift + Esc}, ve a la pestaña \textit{Rendimiento} $\rightarrow$ \textit{CPU} y comprueba que en el apartado \textbf{Virtualización} aparezca como \textbf{Habilitado}. Si aparece como deshabilitado, deberás acceder a la BIOS de tu computadora para activar las tecnologías de virtualización (Intel VT-x o AMD-V).
+    
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth]{cap3.png}
+        \caption{Comprobación de virtualización habilitada.}
+    \end{figure}
+
+    \item \textbf{Habilitar WSL 2 mediante la Terminal:}
+    Abre una ventana de PowerShell o Símbolo del Sistema (CMD) como administrador y ejecuta el siguiente comando:
 
 \begin{lstlisting}
-docker --version
-docker compose version
+wsl --install
 \end{lstlisting}
 
-\subsection{Paso 2: Despliegue con Docker Compose}
-Creación del archivo \texttt{docker-compose.yml}:
+    \item \textbf{Reiniciar el sistema:}
+    Reinicia tu computadora para que el sistema operativo aplique los cambios y cargue correctamente la virtualización.
+    
+    \item \textbf{Iniciar Docker Desktop:}
+    Abre nuevamente la aplicación Docker Desktop. Si la configuración fue exitosa, el estado en la esquina inferior izquierda cambiará a un icono verde con la leyenda \textbf{Engine running} y \textbf{Docker Desktop} estará listo para usarse.
+    \newpage
 
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth]{cap4.png}
+        \caption{Docker Desktop funcionando correctamente.}
+    \end{figure}
+\end{enumerate}
+
+
+\subsection{Paso 3: Prueba de Fuego}
+
+Aún no cantes victoria. Aunque Docker Desktop ya está ejecutándose en el sistema, todavía no tenemos ningún SGBD a nuestra disposición. Para lograrlo, es necesario descargar una \textbf{imagen} oficial de PostgreSQL.
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=\textbf{¿Qué es una imagen en Docker?}]
+Una \textbf{imagen} de Docker es una plantilla de solo lectura que contiene todas las instrucciones, dependencias, librerías y código fuente necesarios para ejecutar una aplicación (en este caso, PostgreSQL) dentro de un entorno aislado.
+\end{tcolorbox}
+
+Para realizar la prueba de fuego y desplegar tu primera base de datos, sigue estos sencillos pasos:
+
+\begin{enumerate}
+    \item \textbf{Crear la estructura del proyecto:}
+    Crea una carpeta en tu equipo (por ejemplo, \texttt{postgres-docker}) y dentro de ella crea dos archivos: \texttt{Dockerfile} y \texttt{docker-compose.yml}.
+
+    \begin{tcolorbox}[colback=yellow!10!white,colframe=yellow!50!black,title=\textbf{¿Qué son los archivos Dockerfile y .yml?}]
+    \begin{itemize}
+        \item \textbf{\texttt{Dockerfile}:} Es un script con instrucciones paso a paso para construir una imagen personalizada.
+        \item \textbf{\texttt{docker-compose.yml}:} Es un archivo de orquestación que define cómo deben ejecutarse, comunicarse y configurarse uno o varios contenedores (puertos, variables de entorno, volúmenes de almacenamiento, etc.).
+    \end{itemize}
+\end{tcolorbox}
+
+    \item \textbf{Configurar el archivo \texttt{Dockerfile}:}
+    Copia y pega el siguiente contenido dentro del archivo \texttt{Dockerfile}:
+
+\begin{lstlisting}
+FROM postgres:18
+EXPOSE 5432
+\end{lstlisting}
+Para garantizar que el archivo se guarde correctamente sin la extensión \texttt{.txt}, sigue este procedimiento:
+
+\begin{enumerate}
+    \item Crea un nuevo archivo de texto en el \textit{Bloc de notas} o tu editor preferido y pega el contenido correspondiente.
+    \item Dirígete al menú \textbf{Archivo} $\rightarrow$ \textbf{Guardar como...} y selecciona la carpeta de tu proyecto.
+    \item En la opción \textit{Tipo}, cambia a \textbf{Todos los archivos (*.*)}.
+    \item En el campo \textit{Nombre de archivo}, escribe únicamente \texttt{Dockerfile} (asegurándote de borrar cualquier extensión como \texttt{.txt}).
+    \item Haz clic en \textbf{Guardar}. Si Windows muestra un mensaje de advertencia indicando que el archivo podría quedar inutilizable, confirma seleccionando \textbf{Sí}.
+\end{enumerate}
+
+    \item \textbf{Configurar el archivo \texttt{docker-compose.yml}:}
+    Copia y pega el siguiente contenido dentro del archivo \texttt{docker-compose.yml}:\\
+    De igual forma este archivo tenemos que guardarlo con la extension \texttt{.yml}
 \begin{lstlisting}
 version: '3.8'
+
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres_db
+    image: postgres:18
+    container_name: postgres183BV1
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: secretpassword
-      POSTGRES_DB: db_docker
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    restart: unless-stopped
 \end{lstlisting}
 
-Comando para levantar el contenedor:
+    \item \textbf{Abrir la Terminal e Iniciar el Contenedor:}
+Da clic derecho sobre un espacio vacío dentro de la carpeta de tu proyecto (o sobre la carpeta misma) y selecciona la opción \textbf{Abrir en Terminal} (o \textit{Abrir la ventana de PowerShell aquí}). 
+
+Una vez abierta la consola de comandos en la ruta de tu proyecto, ejecuta la siguiente instrucción para construir las imágenes y desplegar los contenedores en segundo plano:
+
 \begin{lstlisting}
-docker compose up -d
+docker compose up -d --build
 \end{lstlisting}
+Se comenzara la descarga de la imagen y se iniciara el contenedor.
 
-\subsection{Paso 3: Verificación de la Base de Datos}
-Acceso al contenedor e inserción de datos de prueba:
+    \begin{tcolorbox}[colback=green!5!white,colframe=green!60!black,title=\textbf{¿Qué es un Contenedor?}]
+    Un \textbf{contenedor} es una instancia en ejecución de una imagen. Es el entorno aislado e independiente donde realmente vive y corre nuestra base de datos en tiempo real.
+    \end{tcolorbox}
+
+    \item \textbf{Verificar el Estado del Contenedor:}
+    Comprueba que la base de datos está corriendo correctamente ejecutando:
 
 \begin{lstlisting}
-docker exec -it postgres_db psql -U admin -d db_docker
+docker ps
 \end{lstlisting}
+
+    Si la terminal muestra el contenedor con el estado \textit{Up}, tu SGBD PostgreSQL está listo.
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth]{cap5.png}
+        \caption{Verificación del estado del contenedor.}
+    \end{figure}    
+
+\end{enumerate}
+\newpage
 
 % ==========================================
-\section{Conclusión}
+\section{Método 2: Instalación Tradicional}
 % ==========================================
-Un párrafo breve sobre cuál método te pareció más práctico y por qué.
+
+\subsection{Paso 1: Descarga del Instalador Oficial}
+
+El método tradicional consiste en instalar el SGBD PostgreSQL directamente sobre el sistema operativo mediante un asistente de instalación ejecutable (.exe), junto con su herramienta gráfica por excelencia: \textbf{pgAdmin 4}.
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=\textbf{¿Qué es pgAdmin?}]
+\textbf{pgAdmin} es la plataforma de administración y gestión gráfica (GUI) más popular y de código abierto para PostgreSQL. Permite crear bases de datos, ejecutar consultas SQL, gestionar usuarios y visualizar la estructura del servidor de forma intuitiva.
+\end{tcolorbox}
+
+Para obtener el instalador oficial, sigue estos pasos:
+
+\begin{enumerate}
+    \item Abre tu navegador web e ingresa al sitio web oficial de descarga:\\ \url{https://www.postgresql.org/download/windows/}.
+    \item Haz clic en la opción \textbf{Download the installer}.
+    \item Selecciona la versión deseada para Windows (por ejemplo, PostgreSQL 16 o superior) y presiona el botón \textbf{Download}.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cap6.png}
+        \caption{Descarga del instalador de PostgreSQL.}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{cap7.png}
+        \caption{Selección de la versión para Windows.}
+    \end{minipage}
+\end{figure}
+
+\subsection{Paso 2: Instalación de PostgreSQL y pgAdmin}
+
+Una vez descargado el archivo ejecutable, inicia el asistente de instalación siguiendo estos pasos al pie de la letra:
+
+\begin{enumerate}
+    \item \textbf{Iniciar el asistente:} 
+    Haz doble clic sobre el archivo ejecutable descargado y presiona \textbf{Next} en la pantalla de bienvenida.
+
+    \item \textbf{Seleccionar directorio de instalación:} 
+    Deja la ruta predeterminada:\\ (\texttt{C:$\backslash$Program Files$\backslash$PostgreSQL$\backslash$}) y haz clic en \textbf{Next}.
+
+    \item \textbf{Selección de componentes:} 
+    Asegúrate de mantener marcadas las opciones indispensables:
+    \begin{itemize}
+        \item \textbf{PostgreSQL Server:} El motor de la base de datos.
+        \item \textbf{pgAdmin 4:} La interfaz gráfica de administración.
+        \item \textbf{Command Line Tools:} Herramientas de consola (como \texttt{psql}).
+    \end{itemize}
+    \textit{(Opcional: Puedes desmarcar Stack Builder si no requerirás herramientas adicionales)}.
+
+    \item \textbf{Directorio de Datos (Data Directory):} 
+    Define dónde se almacenarán físicamente los archivos de la base de datos. Se recomienda dejar la ruta por defecto.
+
+    \item \textbf{Configuración de la contraseña del usuario:} 
+    Ingresa y confirma una contraseña para el usuario. 
+    
+    \begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=\textbf{¡Advertencia Importante!}]
+    Memoriza o anota muy bien esta contraseña. La necesitarás obligatoriamente para conectarte al servidor desde pgAdmin por primera vez.
+    \end{tcolorbox}
+
+    \item \textbf{Configuración del Puerto:} 
+    Por defecto, PostgreSQL utiliza el puerto \texttt{5432}. Si mantuviste corriendo el contenedor de Docker del método anterior en ese mismo puerto, asegúrate de cambiarlo a \texttt{5434} o detener previamente el contenedor para evitar conflictos.
+
+    \item \textbf{Completar la instalación:} 
+    Haz clic en \textbf{Next} en las ventanas siguientes y finalmente en \textbf{Finish} para completar la instalación física en el sistema.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{cap8.png}
+    \caption{Asistente de instalación finalizado con éxito.}
+\end{figure}
+
+\subsection{Paso 3: Prueba de Fuego en pgAdmin}
+
+Para verificar que el servicio local de PostgreSQL está funcionando correctamente, crearemos una conexión y un servidor dentro de la herramienta gráfica pgAdmin 4.
+
+\begin{enumerate}
+    \item \textbf{Abrir pgAdmin 4:}
+    Busca \textbf{pgAdmin 4} en el menú de inicio de Windows y ejecútalo. Al abrir por primera vez, te pedirá establecer una contraseña maestra para proteger la aplicación; ingresa una clave fácil de recordar.
+
+    \item \textbf{Conectarse al servidor local:}
+    En el panel izquierdo (\textit{Object Explorer}), despliega la sección \textbf{Servers}. Notarás que aparece un servidor local por defecto (por ejemplo, \textit{PostgreSQL 16}).
+
+    \item \textbf{Autenticación de acceso:}
+    Haz doble clic sobre el servidor local. Aparecerá una ventana solicitando la contraseña del usuario \texttt{postgres} que definiste durante la instalación en el Paso 2. Ingrésala y marca la casilla \textit{Save Password}.
+
+    \begin{tcolorbox}[colback=green!5!white,colframe=green!60!black,title=\textbf{¿Qué es un Servidor en pgAdmin?}]
+    Es la representación lógica y visual de la instancia de PostgreSQL que se encuentra ejecutándose como un servicio en tu sistema operativo, lista para recibir consultas y administrar bases de datos.
+    \end{tcolorbox}
+
+    \item \textbf{Verificación del Estado del Servidor:}
+    Si la contraseña es correcta, la sección se desplegará mostrando el panel de control (\textit{Dashboard}) con métricas en tiempo real (transacciones por segundo, conexiones activas, etc.).
+
+    \begin{figure}[h]
+        \centering
+        \includegraphics[width=0.5\textwidth]{cap9.png}
+        \caption{Dashboard de pgAdmin 4 confirmando el servidor en ejecución.}
+    \end{figure}
+
+    Y listo, tu pgAdmin esta listo para usarse.
+\end{enumerate}
+
+% ==========================================
+\section{Conclusiones}
+% ==========================================
+
+Después de probar ambos caminos, queda claro que cada método tiene lo suyo según lo que busques:
+
+A primera vista, el \textbf{método tradicional} es sin duda el más rápido y directo para empezar. El instalador ejecutable se encarga de todo el proceso sin tener que meternos con la terminal, comandos ni configuraciones raras, dejándonos el servicio y \textbf{pgAdmin 4} listos para usar en un par de clics.
+
+Sin embargo, a la larga, el enfoque con \textbf{Docker} termina siendo la mejor opción por mucho. Aunque al principio da un poco más de trabajo por tener que activar la virtualización y crear la carpeta con sus archivos de configuración, este paso solo se hace una vez. Una vez preparado el entorno, podemos descargar e iniciar cualquier otro SGBD o versión diferente con solo ejecutar una línea de código en la terminal, sin tener que repetir todo el proceso de instalación tradicional ni llenar la computadora de programas pesados.
+\newpage
+% ==========================================
+\section{Referencias}
+% ==========================================
+
+\begin{thebibliography}{9}
+
+    \bibitem{docker_docs}
+    Docker Inc. (2026). 
+    \textit{Docker Documentation: Overview of Docker Desktop and Containers}. 
+    Recuperado de: \url{https://docs.docker.com/get-started/overview/}
+
+    \bibitem{docker_hub}
+    Docker Inc. (2026). 
+    \textit{PostgreSQL Official Image - Docker Hub}. 
+    Recuperado de: \url{https://hub.docker.com/_/postgres}
+
+    \bibitem{postgresql_docs}
+    The PostgreSQL Global Development Group. (2026). 
+    \textit{PostgreSQL 16 Reference Manual: Windows Downloads \& Installation Guidelines}. 
+    Recuperado de: \url{https://www.postgresql.org/download/windows/}
+
+    \bibitem{pgadmin_docs}
+    pgAdmin Development Team. (2026). 
+    \textit{pgAdmin 4 Documentation: Management tool for PostgreSQL}. 
+    Recuperado de: \url{https://www.pgadmin.org/docs/}
+
+    \bibitem{ms_wsl}
+    Microsoft Learn. (2026). 
+    \textit{How to install WSL2 on Windows and enable virtualization features}. 
+    Recuperado de: \url{https://learn.microsoft.com/en-us/windows/wsl/install}
+
+\end{thebibliography}
 
 \end{document}
